@@ -1,0 +1,9 @@
+cd D:\Program Files\Nox\bin\
+adb.exe connect 127.0.0.1:62001
+dene
+
+taskkill /f /im adb.exe
+nox_adb.exe kill-server
+nox_adb.exe connect 127.0.0.1:62001
+
+pause
