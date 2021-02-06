@@ -24,9 +24,7 @@ class _ClockViewState extends State<ClockView> {
       height: 300,
       child: Transform.rotate(
         angle: -pi / 2,
-        child: CustomPaint(
-          painter: ClockPainter(),
-        ),
+        child: Container(),
       ),
     );
   }
