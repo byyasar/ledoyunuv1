@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:ledoyunu/custom_widget/custom_led.dart';
 
@@ -26,8 +24,15 @@ class _HomePageState extends State<HomePage> {
   double yukseklik;
   Random random = Random();
   int ledSayisi = 15;
+  double ledRadius = 20;
   int rastgele;
   int oankiLed;
+  var LedOffColor = [Color(0xFF3C3F58), Color(0xFF3C3F58)];
+  var LedOnColor = [Colors.red, Colors.red[800]];
+  var LedRandomColor = [Colors.blue, Colors.blue[800]];
+  var LedShowColor = [Colors.yellow, Colors.yellow[800]];
+  var bgColor = Color(0xFF2D2F41);
+  int sayacefekt = 0;
 
   @override
   void initState() {
@@ -42,32 +47,58 @@ class _HomePageState extends State<HomePage> {
     yukseklik = MediaQuery.of(context).size.height.toDouble();
 
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.red,
-            onPressed: () {
-            
-              BaslaDurdur();
-              print('sayac $sayac');
-            }),
-        body: Container(
-            width: genislik,
-            height: yukseklik,
-            alignment: Alignment.center,
-            color: Color(0xFF2D2F41),
-            child: Transform.rotate(
-                angle: -pi / 2, child: Stack(children: list))));
+        backgroundColor: bgColor,
+        body: Column(
+          children: [
+            Spacer(
+              flex: 2,
+            ),
+            Expanded(
+              flex: 6,
+              child: Container(
+                  width: genislik,
+                  height: yukseklik,
+                  alignment: Alignment.center,
+                  color: bgColor,
+                  child: Transform.rotate(
+                      angle: -pi / 2, child: Stack(children: list))),
+            ),
+            Expanded(
+                flex: 2,
+                child: Container(
+                    child: FlatButton(
+                        onPressed: () {
+                          sayacefekt == 0 ? BaslaDurdur() : print('Bekle');
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomPaint(
+                                painter:
+                                    CustomLedWidget(0, 30, 60, LedShowColor)),
+                            Text(
+                              'Başla',
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 28),
+                            ),
+                          ],
+                        )))),
+            Spacer(
+              flex: 2,
+            )
+          ],
+        ));
   }
 
   void BaslaDurdur() {
     //RastgeleLediYak();
-    
     print(durum);
     durum = !durum;
     if (durum) {
       rastgele = random.nextInt(ledSayisi);
+
       timer = new Timer.periodic(Duration(milliseconds: 200), (timers) {
         setState(() {
-          
           //print('tick çalışıyor');
           yenile();
           kontrolEt();
@@ -76,6 +107,7 @@ class _HomePageState extends State<HomePage> {
             timer.cancel();
             if (oankiLed == rastgele) {
               print('o anki led $oankiLed rastgele seçilen $rastgele');
+              sayacefekt = 0;
               dondurLedleriyak();
             }
           }
@@ -89,16 +121,16 @@ class _HomePageState extends State<HomePage> {
       //print('index $index deger '+listDurum[index].toString())
       if (listDurum[index] == true) {
         list[index] = CustomPaint(
-            painter: CustomLedWidget(
-                listOffset[index].dx, listOffset[index].dy, 15, Colors.yellow));
+            painter: CustomLedWidget(listOffset[index].dx, listOffset[index].dy,
+                ledRadius, LedOnColor));
       } else {
         list[index] = CustomPaint(
-            painter: CustomLedWidget(
-                listOffset[index].dx, listOffset[index].dy, 15, Colors.red));
+            painter: CustomLedWidget(listOffset[index].dx, listOffset[index].dy,
+                ledRadius, LedOffColor));
       }
       list[rastgele] = CustomPaint(
           painter: CustomLedWidget(listOffset[rastgele].dx,
-              listOffset[rastgele].dy, 15, Colors.blue));
+              listOffset[rastgele].dy, ledRadius, LedRandomColor));
     });
   }
 
@@ -118,57 +150,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   void dondurLedleriyak() {
-    
-    Iterable<int>.generate(listDurum.length).forEach((index) => {
-          //print('index $index deger '+listDurum[index].toString())
-          list[index] = CustomPaint(
-              painter: CustomLedWidget(listOffset[index].dx,
-                  listOffset[index].dy, 15, Colors.yellow))
-        });
-      
-        
-  }
-
-/*
-  void calistir() {
-    if (sayac > 0 && sayac != rastgele) {
-      eskiOffset = listOffset[sayac - 1];
-      yeniOffset = listOffset[sayac];
-      yeniPaint = CustomPaint(
-          painter:
-              CustomLedWidget(yeniOffset.dx, yeniOffset.dy, 15, Colors.yellow));
-      eskiPaint = CustomPaint(
-          painter:
-              CustomLedWidget(eskiOffset.dx, eskiOffset.dy, 15, Colors.pink));
-      list[sayac - 1] = eskiPaint;
-      list[sayac] = yeniPaint;
-      if (sayac == list.length - 1) {
-        eskiOffset = listOffset[sayac];
-        sayac = 0;
-      } else {
-        sayac++;
+    bool yak = true;
+    int index = 0;
+    timer = new Timer.periodic(Duration(milliseconds: 20), (timers) {
+      setState(() {
+        print('yak tick çalışıyor');
+        list[index] = CustomPaint(
+            painter: CustomLedWidget(listOffset[index].dx, listOffset[index].dy,
+                ledRadius, yak == true ? LedShowColor : LedOffColor));
+      });
+      if (index < list.length) index++;
+      if (yak == false && index == list.length) {
+        timer.cancel();
+        print('timer durdu');
+        if (sayacefekt < 3)
+          dondurLedleriyak();
+        else if (sayacefekt == 3) {
+          sayacefekt = 0;
+        }
       }
-    } else {
-      eskiPaint = CustomPaint(
-          painter:
-              CustomLedWidget(eskiOffset.dx, eskiOffset.dy, 15, Colors.pink));
-      if (eskiOffset.dx != 0.0) {
-        print('sona geldi');
-        list[list.length - 1] = eskiPaint;
+      if (yak == true && index == list.length) {
+        index = 0;
+        yak = false;
       }
-      yeniOffset = listOffset[sayac];
-      yeniPaint = CustomPaint(
-          painter:
-              CustomLedWidget(yeniOffset.dx, yeniOffset.dy, 15, Colors.yellow));
-      list[sayac] = yeniPaint;
-      sayac++;
-    }
-
-    setState(() {
-      print(sayac);
     });
+
+    sayacefekt++;
+    print('sayacefect $sayacefekt');
   }
-*/
+
   List<Widget> ledleriOlustur() {
     rastgele = random.nextInt(ledSayisi);
     var innerCircleRadius = 300;
@@ -176,7 +186,8 @@ class _HomePageState extends State<HomePage> {
     for (double i = 0; i < 360; i += artis) {
       var x = innerCircleRadius * cos(i * pi / 180);
       var y = innerCircleRadius * sin(i * pi / 180);
-      list.add(CustomPaint(painter: CustomLedWidget(x, y, 15, Colors.pink)));
+      list.add(
+          CustomPaint(painter: CustomLedWidget(x, y, ledRadius, LedOffColor)));
       listOffset.add(Offset(x, y));
       listDurum.add(false);
     }
@@ -188,6 +199,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ignore: non_constant_identifier_names
-  Color get GetColor =>
-      Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  List<Color> get GetColor => [
+        Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0),
+        Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0)
+      ];
+  //[Colors.yellow, Colors.yellow[800]];
 }
