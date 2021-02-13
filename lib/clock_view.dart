@@ -31,7 +31,6 @@ class _ClockViewState extends State<ClockView> {
 }
 
 class ClockPainter extends CustomPainter {
-  @override
   var dateTime = DateTime.now();
   //60 sec 360-
 
